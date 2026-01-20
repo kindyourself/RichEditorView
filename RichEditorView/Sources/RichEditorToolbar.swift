@@ -116,41 +116,41 @@ import UIKit
     
     private func updateToolbar() {
         var buttons = [UIBarButtonItem]()
+
         for option in options {
             let handler = { [weak self] in
-                if let strongSelf = self {
-                    option.action(strongSelf)
-                }
+                guard let self = self else { return }
+                option.action(self)
             }
 
             if let image = option.image {
-                let button = RichBarButtonItem(image: image, handler: handler)
-                buttons.append(button)
+                buttons.append(RichBarButtonItem(image: image, handler: handler))
             } else {
-                let title = option.title
-                let button = RichBarButtonItem(title: title, handler: handler)
-                buttons.append(button)
+                buttons.append(RichBarButtonItem(title: option.title, handler: handler))
             }
         }
+
         toolbar.items = buttons
 
-        let defaultIconWidth: CGFloat = 28
-        let barButtonItemMargin: CGFloat = 12
-        let width: CGFloat = buttons.reduce(0) {sofar, new in
-            if let view = new.value(forKey: "view") as? UIView {
-                return sofar + view.frame.size.width + barButtonItemMargin
-            } else {
-                return sofar + (defaultIconWidth + barButtonItemMargin)
-            }
-        }
-        
-        if width < frame.size.width {
-            toolbar.frame.size.width = frame.size.width + barButtonItemMargin
-        } else {
-            toolbar.frame.size.width = width + barButtonItemMargin
-        }
-        toolbar.frame.size.height = 44
-        toolbarScroll.contentSize.width = width
+        // ===== 关键修复点 =====
+        let itemWidth: CGFloat = 44          // 统一按钮宽度
+        let spacing: CGFloat = 12
+        let contentWidth = CGFloat(buttons.count) * (itemWidth + spacing)
+
+        let finalWidth = max(contentWidth, bounds.width)
+
+        toolbar.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: finalWidth,
+            height: 44
+        )
+
+        toolbarScroll.contentSize = CGSize(
+            width: finalWidth,
+            height: 44
+        )
     }
+
     
 }
